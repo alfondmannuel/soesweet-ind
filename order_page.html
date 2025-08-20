@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FORM PEMESANAN - SOESSWEET</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <nav class="container">
+            <a href="index.html" class="logo">SOESSWEET</a>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="soes.html">Our Soes</a></li>
+                <li><a href="order_page.html" class="btn-nav">Order Now</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <h1>Form Pemesanan</h1>
+            <p>Pilih varian rasa dan masukkan jumlahnya.</p>
+        </section>
+
+        <section class="custom-form-section">
+            <form id="orderForm" class="custom-form">
+                
+                <div class="form-group">
+                    <label for="namaPemesan">📍 Nama Pemesan :</label>
+                    <input type="text" id="namaPemesan" name="namaPemesan" placeholder="Masukkan nama lengkap Anda" required>
+                </div>
+
+                <div class="form-group">
+                    <label>📦 Pesanan Anda (per pcs) :</label>
+                    <div id="variantsContainer">
+                        </div>
+                    <button type="button" id="addVariantBtn" class="btn-add-variant">Tambah Varian Lain</button>
+                </div>
+                <h2></h2>
+
+                <div id="totalPriceDisplay" class="total-price-display">
+                    <span>Total Yang Harus Dibayarkan :</span>
+                    <span id="totalPrice">Rp 0</span>
+                </div>
+                
+                <h2></h2>
+                
+                <div class="form-group">
+                    <label>📍 Metode Pengiriman :</label>
+                    <div class="pickup-options-container">
+                        <div class="pickup-option-card active" data-value="Delivery">
+                             <input type="radio" name="pengambilan" value="Delivery" checked style="display: none;">
+                             <div class="option-title">
+                                <span>🛵</span> Delivery
+                            </div>
+                            <p class="option-description">Pesanan akan dikirim langsung ke alamat Anda.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" id="alamatPengirimanGroup">
+                    <label for="alamat">📍 Alamat Pengiriman :</label>
+                    <textarea id="alamat" name="alamat" rows="4" placeholder="Masukkan alamat lengkap pengiriman Anda" required></textarea>
+                </div>
+                <h2></h2>
+
+                <div class="form-info-box">
+                    <p>📌 <strong>Pemesanan Open PO</strong> (Kecuali ready stok)</p>
+                    <p>📌 <strong>Payment Transfer BCA :</strong> 1960609651 A.N Alfond Manuel Joseph</p>
+                    <p>Note : Pesanan akan diproses setelah pembayaran & bukti transfer diterima.</p>
+                </div>
+                <h3></h3>
+
+                <button type="submit" class="btn-primary"><strong>Pesan Sekarang</strong></button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>© 2025 SOESSWEET. All Rights Reserved.</p>
+            <div class="social-links">
+                <a href="https://www.instagram.com/brownie.ind?igsh=eGFoc2VqYWp2bDFw">Instagram</a>
+                <a href="https://www.tiktok.com/@strawpancake28?is_from_webapp=1&sender_device=pc">TikTok</a>
+                <a href="https://wa.me/6282313329553" target="_blank">WhatsApp</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const variantsContainer = document.getElementById('variantsContainer');
+            const addVariantBtn = document.getElementById('addVariantBtn');
+            const totalPriceDisplay = document.getElementById('totalPrice');
+            const orderForm = document.getElementById('orderForm');
+            let variantCount = 0;
+            
+            // --- DAFTAR HARGA BARU ---
+            const soesPrices = {
+                "Soes Fla Rogout": 5000,
+                "Soes Fla Chocolate": 4000,
+                "Soes Fla Rum": 4000,
+                "Soes Fla Vanila": 4000
+            };
+
+            function formatRupiah(number) {
+                return new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0
+                }).format(number);
+            }
+
+            // --- FUNGSI KALKULASI DIPERBARUI ---
+            function calculateTotalPrice() {
+                let total = 0;
+                document.querySelectorAll('.variant-row').forEach(row => {
+                    const select = row.querySelector('select');
+                    const flavor = select.value;
+                    const quantityInput = row.querySelector('input[type="number"]');
+                    const quantity = parseInt(quantityInput.value) || 0;
+                    
+                    // Mencari harga berdasarkan rasa yang dipilih
+                    if (quantity > 0 && flavor && soesPrices[flavor]) {
+                        total += soesPrices[flavor] * quantity;
+                    }
+                });
+                totalPriceDisplay.textContent = formatRupiah(total);
+            }
+
+            // --- FUNGSI TAMBAH VARIAN DIPERBARUI ---
+            function addVariantRow() {
+                variantCount++;
+                const variantRow = document.createElement('div');
+                variantRow.className = 'variant-row';
+                variantRow.innerHTML = `
+                    <select name="varian[]" required>
+                        <option value="" disabled selected>-- Pilih Varian --</option>
+                        ${Object.keys(soesPrices).map(variant => `<option value="${variant}">${variant}</option>`).join('')}
+                    </select>
+                    <input type="number" name="jumlah[]" min="1" value="1" required title="Jumlah (pcs)">
+                    <button type="button" class="btn-remove-variant" title="Hapus Varian">×</button>
+                `;
+                variantsContainer.appendChild(variantRow);
+                attachRowListeners(variantRow);
+                calculateTotalPrice();
+                toggleAddButton();
+            }
+
+            function removeVariantRow(button) {
+                button.closest('.variant-row').remove();
+                variantCount--;
+                calculateTotalPrice();
+                toggleAddButton();
+            }
+
+            function attachRowListeners(row) {
+                row.querySelector('select').addEventListener('change', calculateTotalPrice);
+                row.querySelector('input').addEventListener('input', calculateTotalPrice);
+                const removeBtn = row.querySelector('.btn-remove-variant');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', () => removeVariantRow(removeBtn));
+                }
+            }
+            
+            function toggleAddButton() {
+                const totalFlavors = Object.keys(soesPrices).length;
+                if (variantCount < totalFlavors) {
+                    addVariantBtn.style.display = 'block';
+                } else {
+                    addVariantBtn.style.display = 'none';
+                }
+            }
+
+            addVariantBtn.addEventListener('click', addVariantRow);
+
+            orderForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+
+                const namaPemesan = document.getElementById('namaPemesan').value;
+                const alamat = document.getElementById('alamat').value;
+                const pengambilan = "Delivery";
+
+                const selectedVariants = [];
+                let totalPcs = 0;
+                document.querySelectorAll('.variant-row').forEach(row => {
+                    const flavorName = row.querySelector('select').value;
+                    const quantity = parseInt(row.querySelector('input[type="number"]').value) || 0;
+                    if (flavorName && quantity > 0) {
+                        selectedVariants.push(`- ${flavorName} (${quantity} pcs)`);
+                        totalPcs += quantity;
+                    }
+                });
+
+                if (totalPcs === 0) {
+                    alert('Mohon tambahkan setidaknya satu varian ke pesanan Anda.');
+                    return; 
+                }
+
+                let waMessage = `FORM PEMESANAN SOESSWEET\n\n` +
+                                `📍 Nama Pemesan : ${namaPemesan}\n` +
+                                `📍 Alamat : ${alamat}\n` +
+                                `📍 Metode Pengiriman : ${pengambilan}\n`;
+
+                waMessage += `\n📦 Pesanan:\n${selectedVariants.join('\n')}\n`;
+                waMessage += `\n💰 Total Harga: ${totalPriceDisplay.textContent}\n\n`;
+
+                const encodedMessage = encodeURIComponent(waMessage);
+                const whatsappNumber = '6282313329553';
+                const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+                
+                window.open(whatsappUrl, '_blank');
+
+                orderForm.reset();
+                variantsContainer.innerHTML = '';
+                variantCount = 0;
+                addVariantRow();
+                calculateTotalPrice();
+            });
+
+            addVariantRow();
+        });
+    </script>
+</body>
+</html>
