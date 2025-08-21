@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css"> 
 </head>
 <body>
 
@@ -32,12 +32,12 @@
             <form id="orderForm" class="custom-form">
                 
                 <div class="form-group">
-                    <label for="namaPemesan">📍 Nama Pemesan :</label>
+                    <label for="namaPemesan">Nama Pemesan :</label>
                     <input type="text" id="namaPemesan" name="namaPemesan" placeholder="Masukkan nama lengkap Anda">
                 </div>
 
                 <div class="form-group">
-                    <label>📦 Pesanan Anda (per pcs) :</label>
+                    <label>Pesanan Anda (per pcs) :</label>
                     <div id="variantsContainer">
                         </div>
                     <button type="button" id="addVariantBtn" class="btn-add-variant">Tambah Varian Lain</button>
@@ -52,7 +52,7 @@
                 <h2></h2>
                 
                 <div class="form-group">
-                    <label>📍 Metode Pengiriman :</label>
+                    <label>Metode Pengiriman :</label>
                     <div class="pickup-options-container">
                         <div class="pickup-option-card active" data-value="Delivery">
                              <input type="radio" name="pengambilan" value="Delivery" checked style="display: none;">
@@ -65,7 +65,7 @@
                 </div>
 
                 <div class="form-group" id="alamatPengirimanGroup">
-                    <label for="alamat">📍 Alamat Pengiriman :</label>
+                    <label for="alamat">Alamat Pengiriman :</label>
                     <textarea id="alamat" name="alamat" rows="4" placeholder="Masukkan alamat lengkap pengiriman Anda"></textarea>
                 </div>
                 <h2></h2>
@@ -131,12 +131,10 @@
                 totalPriceDisplay.textContent = formatRupiah(total);
             }
 
-            // --- FUNGSI TAMBAH VARIAN DIPERBARUI ---
             function addVariantRow() {
                 variantCount++;
                 const variantRow = document.createElement('div');
                 variantRow.className = 'variant-row';
-                // Atribut 'required' dihapus dari select dan input di bawah ini
                 variantRow.innerHTML = `
                     <select name="varian[]">
                         <option value="" disabled selected>-- Pilih Varian --</option>
@@ -178,34 +176,32 @@
 
             addVariantBtn.addEventListener('click', addVariantRow);
 
-            // --- FUNGSI SUBMIT FORM DIPERBARUI TOTAL ---
             orderForm.addEventListener('submit', function(event) {
-                event.preventDefault(); // Tetap cegah reload halaman
+                event.preventDefault();
 
-                // --- VALIDASI DITAMBAHKAN DI SINI ---
+                // --- VALIDASI DATA ---
                 const namaPemesan = document.getElementById('namaPemesan').value.trim();
                 const alamat = document.getElementById('alamat').value.trim();
 
                 if (!namaPemesan) {
                     alert('Mohon isi nama pemesan terlebih dahulu.');
-                    return; // Hentikan fungsi jika nama kosong
+                    return;
                 }
 
                 if (!alamat) {
                     alert('Mohon isi alamat pengiriman terlebih dahulu.');
-                    return; // Hentikan fungsi jika alamat kosong
+                    return;
                 }
                 
                 const pengambilan = "Delivery";
                 const selectedVariants = [];
                 let totalPcs = 0;
-                let isVariantSelected = true; // Variabel untuk cek pilihan varian
+                let isVariantSelected = true; 
                 
                 document.querySelectorAll('.variant-row').forEach(row => {
                     const flavorName = row.querySelector('select').value;
                     const quantity = parseInt(row.querySelector('input[type="number"]').value) || 0;
                     
-                    // Cek jika varian belum dipilih
                     if (!flavorName) {
                         isVariantSelected = false;
                     }
@@ -217,7 +213,6 @@
                 });
 
                 if (totalPcs === 0) {
-                    // Beri pesan berbeda jika varian sudah ada tapi jumlah 0, atau varian belum dipilih
                     if (!isVariantSelected) {
                         alert('Mohon pilih varian rasa terlebih dahulu.');
                     } else {
@@ -225,23 +220,25 @@
                     }
                     return; 
                 }
-                // --- AKHIR DARI BLOK VALIDASI ---
+                // --- AKHIR VALIDASI ---
 
-                let waMessage = `FORM PEMESANAN SOESSWEET\n\n` +
-                                `📍 Nama Pemesan : ${namaPemesan}\n` +
-                                `📍 Alamat : ${alamat}\n` +
-                                `📍 Metode Pengiriman : ${pengambilan}\n`;
+                // --- MEMBUAT PESAN WHATSAPP (FORMAT AMAN) ---
+                let waMessage = `*FORM PEMESANAN SOESSWEET*\n\n` +
+                                `Nama Pemesan: ${namaPemesan}\n` +
+                                `Alamat: ${alamat}\n` +
+                                `Metode Pengiriman: ${pengambilan}\n\n` +
+                                `*Pesanan:*\n` +
+                                `${selectedVariants.join('\n')}\n\n` +
+                                `*Total Harga: ${totalPriceDisplay.textContent}*`;
 
-                waMessage += `\n📦 Pesanan:\n${selectedVariants.join('\n')}\n`;
-                waMessage += `\n💰 Total Harga: ${totalPriceDisplay.textContent}\n\n`;
-
+                // --- MENGIRIM PESAN ---
                 const encodedMessage = encodeURIComponent(waMessage);
                 const whatsappNumber = '6289502410010';
                 const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
                 
                 window.open(whatsappUrl, '_blank');
 
-                // Reset form setelah berhasil
+                // --- MERESET FORMULIR SETELAH BERHASIL ---
                 orderForm.reset();
                 variantsContainer.innerHTML = '';
                 variantCount = 0;
