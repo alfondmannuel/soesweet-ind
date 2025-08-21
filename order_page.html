@@ -33,7 +33,7 @@
                 
                 <div class="form-group">
                     <label for="namaPemesan">📍 Nama Pemesan :</label>
-                    <input type="text" id="namaPemesan" name="namaPemesan" placeholder="Masukkan nama lengkap Anda" required>
+                    <input type="text" id="namaPemesan" name="namaPemesan" placeholder="Masukkan nama lengkap Anda">
                 </div>
 
                 <div class="form-group">
@@ -57,8 +57,8 @@
                         <div class="pickup-option-card active" data-value="Delivery">
                              <input type="radio" name="pengambilan" value="Delivery" checked style="display: none;">
                              <div class="option-title">
-                                <span>🛵</span> Delivery
-                            </div>
+                                 <span>🛵</span> Delivery
+                             </div>
                             <p class="option-description">Pesanan akan dikirim langsung ke alamat Anda.</p>
                         </div>
                     </div>
@@ -66,7 +66,7 @@
 
                 <div class="form-group" id="alamatPengirimanGroup">
                     <label for="alamat">📍 Alamat Pengiriman :</label>
-                    <textarea id="alamat" name="alamat" rows="4" placeholder="Masukkan alamat lengkap pengiriman Anda" required></textarea>
+                    <textarea id="alamat" name="alamat" rows="4" placeholder="Masukkan alamat lengkap pengiriman Anda"></textarea>
                 </div>
                 <h2></h2>
 
@@ -101,7 +101,6 @@
             const orderForm = document.getElementById('orderForm');
             let variantCount = 0;
             
-            // --- DAFTAR HARGA BARU ---
             const soesPrices = {
                 "Soes Fla Rogout": 5000,
                 "Soes Fla Chocolate": 4000,
@@ -117,7 +116,6 @@
                 }).format(number);
             }
 
-            // --- FUNGSI KALKULASI DIPERBARUI ---
             function calculateTotalPrice() {
                 let total = 0;
                 document.querySelectorAll('.variant-row').forEach(row => {
@@ -126,7 +124,6 @@
                     const quantityInput = row.querySelector('input[type="number"]');
                     const quantity = parseInt(quantityInput.value) || 0;
                     
-                    // Mencari harga berdasarkan rasa yang dipilih
                     if (quantity > 0 && flavor && soesPrices[flavor]) {
                         total += soesPrices[flavor] * quantity;
                     }
@@ -139,12 +136,13 @@
                 variantCount++;
                 const variantRow = document.createElement('div');
                 variantRow.className = 'variant-row';
+                // Atribut 'required' dihapus dari select dan input di bawah ini
                 variantRow.innerHTML = `
-                    <select name="varian[]" required>
+                    <select name="varian[]">
                         <option value="" disabled selected>-- Pilih Varian --</option>
                         ${Object.keys(soesPrices).map(variant => `<option value="${variant}">${variant}</option>`).join('')}
                     </select>
-                    <input type="number" name="jumlah[]" min="1" value="1" required title="Jumlah (pcs)">
+                    <input type="number" name="jumlah[]" min="1" value="1" title="Jumlah (pcs)">
                     <button type="button" class="btn-remove-variant" title="Hapus Varian">×</button>
                 `;
                 variantsContainer.appendChild(variantRow);
@@ -180,18 +178,38 @@
 
             addVariantBtn.addEventListener('click', addVariantRow);
 
+            // --- FUNGSI SUBMIT FORM DIPERBARUI TOTAL ---
             orderForm.addEventListener('submit', function(event) {
-                event.preventDefault();
+                event.preventDefault(); // Tetap cegah reload halaman
 
-                const namaPemesan = document.getElementById('namaPemesan').value;
-                const alamat = document.getElementById('alamat').value;
+                // --- VALIDASI DITAMBAHKAN DI SINI ---
+                const namaPemesan = document.getElementById('namaPemesan').value.trim();
+                const alamat = document.getElementById('alamat').value.trim();
+
+                if (!namaPemesan) {
+                    alert('Mohon isi nama pemesan terlebih dahulu.');
+                    return; // Hentikan fungsi jika nama kosong
+                }
+
+                if (!alamat) {
+                    alert('Mohon isi alamat pengiriman terlebih dahulu.');
+                    return; // Hentikan fungsi jika alamat kosong
+                }
+                
                 const pengambilan = "Delivery";
-
                 const selectedVariants = [];
                 let totalPcs = 0;
+                let isVariantSelected = true; // Variabel untuk cek pilihan varian
+                
                 document.querySelectorAll('.variant-row').forEach(row => {
                     const flavorName = row.querySelector('select').value;
                     const quantity = parseInt(row.querySelector('input[type="number"]').value) || 0;
+                    
+                    // Cek jika varian belum dipilih
+                    if (!flavorName) {
+                        isVariantSelected = false;
+                    }
+                    
                     if (flavorName && quantity > 0) {
                         selectedVariants.push(`- ${flavorName} (${quantity} pcs)`);
                         totalPcs += quantity;
@@ -199,9 +217,15 @@
                 });
 
                 if (totalPcs === 0) {
-                    alert('Mohon tambahkan setidaknya satu varian ke pesanan Anda.');
+                    // Beri pesan berbeda jika varian sudah ada tapi jumlah 0, atau varian belum dipilih
+                    if (!isVariantSelected) {
+                        alert('Mohon pilih varian rasa terlebih dahulu.');
+                    } else {
+                        alert('Mohon masukkan jumlah pesanan minimal 1 pcs.');
+                    }
                     return; 
                 }
+                // --- AKHIR DARI BLOK VALIDASI ---
 
                 let waMessage = `FORM PEMESANAN SOESSWEET\n\n` +
                                 `📍 Nama Pemesan : ${namaPemesan}\n` +
@@ -217,6 +241,7 @@
                 
                 window.open(whatsappUrl, '_blank');
 
+                // Reset form setelah berhasil
                 orderForm.reset();
                 variantsContainer.innerHTML = '';
                 variantCount = 0;
@@ -224,7 +249,8 @@
                 calculateTotalPrice();
             });
 
-            addVariantRow();
+            // Tambahkan baris varian pertama saat halaman dimuat
+            addVariantRow(); 
         });
     </script>
 </body>
